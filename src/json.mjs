@@ -25,7 +25,7 @@ export function parseUniqueJson(bytes,{location,budget}){
     if(c==='f'&&text.slice(i,i+5)==='false'){i+=5;continue;}
     if(c==='n'&&text.slice(i,i+4)==='null'){i+=4;continue;}
     const number=text.slice(i).match(/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/);
-    if(number){const value=Number(number[0]);if(!Number.isFinite(value)||(Number.isInteger(value)&&!Number.isSafeInteger(value)))invalid();i+=number[0].length;continue;}
+    if(number){const value=Number(number[0]);if(!/^-?(?:0|[1-9]\d*)$/.test(number[0])||!Number.isSafeInteger(value))invalid();i+=number[0].length;continue;}
     invalid();
   }
   if(stack.length)invalid();

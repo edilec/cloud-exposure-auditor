@@ -50,8 +50,8 @@ export function exposeOne(provider,klass){
 }
 export function bundleViews(provider,rows){return CLASSES.map((klass,i)=>({evidenceClass:klass,role:`@bundle-${String(i+1).padStart(4,'0')}`,records:rows[klass],coverage:{regions:['keys','mfa'].includes(klass)?['global']:['region-a']},pointerFor:(index,field='')=>`/records/${index}${field?`/${field}`:''}`}));}
 export const toolRoot=fileURLToPath(new URL('../',import.meta.url));
-export function runCliFixture(argv,{preload}={}){
-  const env={...process.env};delete env.NODE_OPTIONS;
+export function runCliFixture(argv,{preload='test/no-network-preload.mjs'}={}){
+  const env={...process.env};delete env.NODE_OPTIONS;delete env.NODE_TEST_CONTEXT;
   const args=[...(preload?['--import',join(toolRoot,preload)]:[]),join(toolRoot,'bin/cloud-exposure-auditor.mjs'),...argv];
   const result=spawnSync(process.execPath,args,{cwd:toolRoot,env,encoding:'utf8',timeout:30000,maxBuffer:8*1024*1024});
   if(result.error||result.signal)throw new Error('CLI runner failed.');

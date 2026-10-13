@@ -22,7 +22,7 @@ function evaluate(klass,row,ctx){
   if(klass==='mfa'){if(effectiveMfa(row,{allowedKinds:['user','root','federated'],allowedBases:['direct','federated'],location:at}))out.push(['privileged-mfa-disabled','mfa']);}
   if(klass==='logging'){
     requireFact(['all','read-only','write-only','none'].includes(row.managementEvents)&&row.exclusions==='none'&&Array.isArray(row.coverageRegions)&&row.coverageRegions.length>0&&row.coverageRegions.every(r=>text(r,64)),at);
-    requireFact(ctx.bundle.coverage.regions.every(r=>row.coverageRegions.includes(r)),at,'region-incomplete');
+    requireFact(row.coverageRegions.includes(row.region)&&row.coverageRegions.every(r=>ctx.bundle.coverage.regions.includes(r)),at,'region-incomplete');
     if(!row.enabled||row.managementEvents!=='all')out.push(['audit-logging-disabled','managementEvents']);
   }
   return out;

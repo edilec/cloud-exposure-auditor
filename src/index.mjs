@@ -16,7 +16,7 @@ export async function auditExports({root,manifestPath,now,keyAgeDays=90,clock=()
   if(typeof root!=='string'||!root||typeof manifestPath!=='string'||!manifestPath||isAbsolute(manifestPath)||manifestPath.split(/[\\/]/).includes('..')||!Number.isFinite(nowMs)||!integer(keyAgeDays,1,36500)||typeof clock!=='function')throw new ConfigError();
   try{root=await realpath(root);if(!(await stat(root)).isDirectory())throw new ConfigError();}catch{throw new ConfigError();}
   let budget,loaded,analyzed;
-  const report=extra=>buildReport({findings:[...(loaded?.findings??[]),...(analyzed?.findings??[]),...extra],checked:analyzed?.checked??0,files:budget?.files??0,classesComplete:loaded?5-new Set([...loaded.incompleteClasses,...(analyzed?.incompleteClasses??[])]).size:0});
+  const report=extra=>buildReport({findings:[...(loaded?.findings??[]),...(analyzed?.findings??[]),...(loaded?.bundles.length>0&&loaded.bundles.every(b=>b.records.length===0)?[finding('no-evidence',{file:'@manifest',pointer:''})]:[]),...extra],checked:analyzed?.checked??0,files:budget?.files??0,classesComplete:loaded?5-new Set([...loaded.incompleteClasses,...(analyzed?.incompleteClasses??[])]).size:0});
   try{
     budget=createBudget({clock});loaded=await loadEvidence({root,manifestPath,nowMs,budget});
     if(Object.hasOwn(adapters,loaded.provider))analyzed=adapters[loaded.provider](loaded.bundles,{nowMs,keyAgeDays,budget});

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {writeFile,symlink,mkdir,realpath} from 'node:fs/promises';
 import {join} from 'node:path';
 import {withTempDir} from './helpers.mjs';
+import fsPromises from 'node:fs/promises';
+import {syncBuiltinESMExports} from 'node:module';
 import {readBounded} from '../src/input.mjs';
 import {createBudget} from '../src/budget.mjs';
 const location={file:'@bundle-0001',pointer:''};
@@ -19,6 +21,16 @@ test('symlink escape, lexical escape, absolute, and nonregular files refused',()
   for(const name of ['escape','../outside',join(parent,'outside'),'.','missing'])await assert.rejects(read(root,name),e=>e.ruleId==='input-unreadable');
 }));
 test('byte boundary accepted and N+1 refused by bounded reads',()=>withTempDir(async root=>{
-  await writeFile(join(root,'exact'),Buffer.alloc(8388608));assert.equal((await read(root,'exact')).bytes.length,8388608);
+  await writeFile(join(root,'exact'),Buffer.alloc(8388608));let exact;await assert.doesNotReject(async()=>{exact=await read(root,'exact');});assert.equal(exact.bytes.length,8388608);
   await writeFile(join(root,'above'),Buffer.alloc(8388609));await assert.rejects(read(root,'above'),e=>e.ruleId==='byte-limit');
+}));
+test('a file growing after stat still hits the bounded read limit',()=>withTempDir(async root=>{
+  const path=join(root,'growing');await writeFile(path,Buffer.alloc(8388608));const originalOpen=fsPromises.open;
+  fsPromises.open=async(...args)=>{
+    const handle=await originalOpen(...args),originalRead=handle.read.bind(handle);let first=true;
+    handle.read=async(...readArgs)=>{if(first){first=false;await fsPromises.appendFile(path,'x');}return originalRead(...readArgs);};return handle;
+  };
+  syncBuiltinESMExports();
+  try{await assert.rejects(read(root,'growing'),e=>e.ruleId==='byte-limit');}
+  finally{fsPromises.open=originalOpen;syncBuiltinESMExports();}
 }));

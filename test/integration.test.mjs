@@ -18,5 +18,5 @@ test('incomplete-dominates-exposure-through-bin',()=>withTempDir(async root=>{
   await writeBundle(root,'aws',exposeOne('aws','storage'));await editManifest(root,m=>{m.evidence.keys.status='absent';});const r=runCliFixture(['--root',root,'--manifest','manifest.json','--now',NOW]);assert.equal(r.code,2);assert.equal(r.report.status,'incomplete');assert.ok(r.report.findings.some(f=>f.ruleId==='storage-public'));assert.ok(r.report.findings.some(f=>f.ruleId==='class-incomplete'));
 }));
 test('entirely empty explicit evidence cannot pass',()=>withTempDir(async root=>{
-  await writeBundle(root,'aws',{storage:[],ingress:[],keys:[],mfa:[],logging:[]});const r=runCliFixture(['--root',root,'--manifest','manifest.json','--now',NOW]);assert.equal(r.code,2);assert.equal(r.report.findings[0].ruleId,'no-evidence');
+  await writeBundle(root,'aws',{storage:[],ingress:[],keys:[],mfa:[],logging:[]});const r=runCliFixture(['--root',root,'--manifest','manifest.json','--now',NOW]);assert.equal(r.code,2);assert.ok(r.report.findings.some(f=>f.ruleId==='no-evidence'));assert.ok(r.report.findings.some(f=>f.ruleId==='region-incomplete'));
 }));

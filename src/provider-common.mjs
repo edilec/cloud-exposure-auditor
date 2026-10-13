@@ -57,18 +57,20 @@ export function validateRecord(row,provider,klass,location){
   requireFact(['keys','mfa'].includes(klass)?row.region==='global':row.region!=='global',location);
 }
 export function evaluateRecords(bundle,evaluateOne,context){
-  const findings=[];let checked=0,incomplete=false;
+  const findings=[],coveredRegions=new Set();let checked=0,incomplete=false;
   for(const [i,row]of bundle.records.entries()){
     const location={file:bundle.role,pointer:bundle.pointerFor(i)};
     try{
       context.budget.check(location);const observations=evaluateOne(row,{...context,location,bundle});checked++;
+      if(bundle.evidenceClass==='logging')for(const region of row.coverageRegions??[row.region])coveredRegions.add(region);
       for(const [id,field]of observations)findings.push(finding(id,{file:bundle.role,pointer:bundle.pointerFor(i,field)}));
     }catch(e){if(!(e instanceof EvidenceError))throw e;incomplete=true;findings.push(finding(e.ruleId,e.location??location));if(e.ruleId==='time-limit')break;}
   }
-  return {findings,checked,incomplete};
+  return {findings,checked,incomplete,coveredRegions};
 }
 export function runAdapter(bundles,evaluateOne,context){
-  const result={findings:[],checked:0,incompleteClasses:new Set()};
-  for(const bundle of bundles){const r=evaluateRecords(bundle,(row,ctx)=>evaluateOne(bundle.evidenceClass,row,ctx),context);result.findings.push(...r.findings);result.checked+=r.checked;if(r.incomplete)result.incompleteClasses.add(bundle.evidenceClass);}
+  const result={findings:[],checked:0,incompleteClasses:new Set()},expectedLogging=new Set(),coveredLogging=new Set();let loggingRole;
+  for(const bundle of bundles){const r=evaluateRecords(bundle,(row,ctx)=>evaluateOne(bundle.evidenceClass,row,ctx),context);result.findings.push(...r.findings);result.checked+=r.checked;if(r.incomplete)result.incompleteClasses.add(bundle.evidenceClass);if(bundle.evidenceClass==='logging'){loggingRole??=bundle.role;for(const region of bundle.coverage.regions)expectedLogging.add(region);for(const region of r.coveredRegions)coveredLogging.add(region);}}
+  if([...expectedLogging].some(r=>!coveredLogging.has(r))){result.findings.push(finding('region-incomplete',{file:loggingRole,pointer:''}));result.incompleteClasses.add('logging');}
   return result;
 }
