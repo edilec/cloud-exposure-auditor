@@ -23,7 +23,10 @@ export async function readBounded({root,relativePath,location,budget}){
       budget.check(location);
       const chunk=Buffer.alloc(Math.min(65536,LIMITS.bytes+1-total));
       let timer;
-      const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new EvidenceError('time-limit',location)),Math.max(1,budget.remainingMilliseconds));});
+      const timeout=new Promise((_,reject)=>{
+        const tick=()=>{try{budget.check(location);timer=setTimeout(tick,Math.max(1,budget.remainingMilliseconds+1));}catch(error){reject(error);}};
+        timer=setTimeout(tick,Math.max(1,budget.remainingMilliseconds+1));
+      });
       let bytesRead;
       try{({bytesRead}=await Promise.race([handle.read(chunk,0,chunk.length,null),timeout]));}finally{clearTimeout(timer);}
       budget.check(location);

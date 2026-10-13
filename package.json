@@ -5,5 +5,7 @@
   "type": "module",
   "engines": {"node": ">=22"},
   "license": "MIT",
+  "exports": {".": "./src/index.mjs"},
+  "bin": {"cloud-exposure-auditor": "bin/cloud-exposure-auditor.mjs"},
   "scripts": {"lint": "node scripts/lint.mjs", "test": "node --test", "check": "node scripts/check.mjs"}
 }

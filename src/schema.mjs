@@ -1,5 +1,6 @@
 import {EvidenceError} from './budget.mjs';
 export const CLASS_IDS=Object.freeze(['storage','ingress','keys','mfa','logging']);
+export class ConfigError extends Error {constructor(){super('Invalid configuration. Use --help.');}}
 export const SOURCE_KINDS=Object.freeze({aws:{storage:['storage-public-policy'],ingress:['ec2-security-groups'],keys:['iam-credential-report','access-key-inventory'],mfa:['mfa-state'],logging:['cloudtrail-status']},azure:{storage:['azure-storage-public-settings'],ingress:['azure-nsg-rules'],keys:['azure-key-inventory'],mfa:['entra-privileged-mfa'],logging:['azure-diagnostic-settings']},gcp:{storage:['gcs-public-settings'],ingress:['gcp-vpc-firewall'],keys:['service-account-key-inventory'],mfa:['cloud-identity-mfa'],logging:['cloud-audit-logs']}});
 const forbidden=/[\u0000-\u001f\u007f-\u009f\u2028\u2029\p{Cf}]/u;
 export function requireFact(ok,location,ruleId='unsupported-field'){if(!ok)throw new EvidenceError(ruleId,location);}
