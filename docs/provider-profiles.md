@@ -15,3 +15,11 @@ MFA source `mfa-state`: principalKind user/root/federated, privileged, mfa statu
 ## Shared network and age policy
 
 Administrative TCP ports: 22, 3389, 5985, 5986. Broad means IPv4 prefix at most 8 or IPv6 at most 32; /0 is unrestricted. IPv4-mapped IPv6 is interpreted consistently with IPv4 to avoid prefix bypass. CIDRs require valid canonical networks (zero host bits); no zone IDs, hostnames or unresolved service tags. A more specific range is clean only for this supported rule. Active long-lived keys fail only when elapsed age is strictly greater than the injected day threshold. Invalid/future UTC dates remain incomplete even on inactive keys.
+
+## Azure
+
+Storage source `azure-storage-public-settings`: allowBlobPublicAccess, containerAccess private/blob/container, network publicNetworkAccess enabled/disabled, defaultAction allow/deny, effectiveInternetAccess allowed/blocked. A public anonymous container and effective internet path fail; disabled anonymous access/private container/known effective block are clean. Unknown or contradictory settings are incomplete; a deny default alone does not prove privacy.
+
+Ingress source `azure-nsg-rules`: direction inbound/outbound, access allow/deny, priority 100–4096, protocol tcp/udp/all, ports [{from,to}], sources [CIDR], effective applies/shadowed. The normalizer must resolve NSG association, destination and precedence; unknown applicability/service tags remain incomplete.
+
+Keys source `azure-key-inventory`: principalKind storage-account/service-principal, credentialType storage-account-key/client-secret respectively, createdAt, active. MFA source `entra-privileged-mfa`: principalKind user/federated, privileged, mfa status enabled/disabled, basis direct/conditional-access/federated, effective true. Registration alone is incomplete. Logging source `azure-diagnostic-settings`: enabled, categories {administrative:boolean,security:boolean}, exclusions none. Both local required categories must be enabled; unmodeled exclusions are incomplete.
