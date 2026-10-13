@@ -18,7 +18,8 @@ test('Azure priority boundaries and unresolved tags',()=>{
 });
 test('Azure effective federated MFA and unknown logging exceptions',()=>{
   const rows=safeRecords('azure');rows.mfa[0].principalKind='federated';rows.mfa[0].mfa.basis='federated';assert.equal(audit(rows).status,'pass');rows.mfa[0].mfa.effective=false;assert.equal(audit(rows).status,'incomplete');
-  const logs=safeRecords('azure');logs.logging[0].exclusions='unsupported';assert.equal(audit(logs).status,'incomplete');logs.logging[0].exclusions='none';logs.logging[0].categories.security=false;assert.equal(audit(logs).status,'fail');
+  const logs=safeRecords('azure');logs.logging[0].exclusions='unsupported';assert.equal(audit(logs).status,'incomplete');
+  for(const category of ['administrative','security']){const partial=safeRecords('azure');partial.logging[0].categories[category]=false;assert.equal(audit(partial).status,'fail');}
 });
 test('Azure unsupported key kind and old inactive key',()=>{
   const rows=exposeOne('azure','keys');rows.keys[0].active=false;assert.equal(audit(rows).status,'pass');rows.keys[0].credentialType='client-secret';assert.equal(audit(rows).status,'incomplete');

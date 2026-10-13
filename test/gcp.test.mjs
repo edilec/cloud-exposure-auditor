@@ -21,5 +21,6 @@ test('GCP system managed key and invalid dates',()=>{
 });
 test('GCP effective federated MFA and logging exclusions',()=>{
   const rows=safeRecords('gcp');rows.mfa[0].principalKind='federated';rows.mfa[0].mfa.basis='federated';assert.equal(audit(rows).status,'pass');rows.mfa[0].mfa.status='unknown';assert.equal(audit(rows).status,'incomplete');
-  const logs=safeRecords('gcp');logs.logging[0].exclusions='unsupported';assert.equal(audit(logs).status,'incomplete');logs.logging[0].exclusions='none';logs.logging[0].categories.dataAccess=false;assert.equal(audit(logs).status,'fail');
+  const logs=safeRecords('gcp');logs.logging[0].exclusions='unsupported';assert.equal(audit(logs).status,'incomplete');
+  for(const category of ['adminActivity','dataAccess']){const partial=safeRecords('gcp');partial.logging[0].categories[category]=false;assert.equal(audit(partial).status,'fail');}
 });

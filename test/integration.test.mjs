@@ -43,3 +43,8 @@ test('matching AWS deny keeps the actual CLI ACL result clean',()=>withTempDir(a
   const rows=safeRecords('aws'),s=rows.storage[0];s.policy={state:'present',statements:[{effect:'deny',principal:'public',permissions:['read'],resourceScope:'whole-bucket',condition:'none'}]};s.ownership='acl-enabled';s.publicAccessBlock.ignorePublicAcls=false;s.acl.publicRead=true;
   await writeBundle(root,'aws',rows);const r=runCliFixture(['--root',root,'--manifest','manifest.json','--now',NOW]);assert.equal(r.code,0);assert.deepEqual(r.report.findings,[]);
 }));
+test('unsupported provider facts mark their class incomplete despite another exposure',()=>withTempDir(async root=>{
+  const rows=exposeOne('aws','storage');rows.keys[0].principalKind='unknown';await writeBundle(root,'aws',rows);
+  const r=runCliFixture(['--root',root,'--manifest','manifest.json','--now',NOW]);assert.equal(r.code,2);assert.equal(r.report.status,'incomplete');assert.equal(r.report.summary.classesComplete,4);assert.equal(r.report.summary.checked,4);
+  assert.deepEqual(new Set(r.report.findings.map(f=>f.ruleId)),new Set(['storage-public','unsupported-field']));
+}));

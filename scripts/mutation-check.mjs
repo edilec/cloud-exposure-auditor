@@ -22,7 +22,19 @@ export async function runCase({root,file,from,to,selectors,pattern,timeout=30000
     return {outcome:classifyResult(result)};
   }finally{await rm(copy,{recursive:true,force:true});}
 }
-async function enumerate(root){
+export async function equivalenceProof(root,domain){
+  const source=await readFile(join(root,'src/report.mjs'),'utf8');let values;
+  if(domain==='roles'){
+    if(!source.includes("!/^@(?:manifest|bundle-\\d{4})$/.test(location.file)"))throw new Error('Location domain changed.');
+    values=['@manifest',...Array.from({length:10000},(_,i)=>`@bundle-${String(i).padStart(4,'0')}`)];
+  }else if(domain==='rules'){
+    const {RULES}=await import(new URL('../src/report.mjs',import.meta.url));values=Object.keys(RULES);
+  }else throw new Error('Unsupported equivalence domain.');
+  const codeUnit=[...values].sort(),collator=new Intl.Collator('en'),collated=[...values].sort(collator.compare);
+  if(JSON.stringify(codeUnit)!==JSON.stringify(collated)||collated.some((v,i)=>i>0&&collator.compare(collated[i-1],v)===0))throw new Error('Comparator is not equivalent on the permitted domain.');
+  return {domain,values:values.length,byteIdenticalOrder:true,noCollationTies:true};
+}
+export async function enumerate(root){
   const report=await readFile(join(root,'src/report.mjs'),'utf8'),cases=[];
   const classFor={'storage-public':'storage','admin-ingress-broad':'ingress','key-age-exceeded':'keys','privileged-mfa-disabled':'mfa','audit-logging-disabled':'logging'};
   for(const m of report.matchAll(/^  '([^']+)': \{severity:'(error|warning)',incomplete:(true|false),/gm)){
@@ -58,6 +70,33 @@ async function enumerate(root){
   cases.push({name:'library-unknown-options',file:'src/index.mjs',from:"Reflect.ownKeys(options).some(key=>!['root','manifestPath','now','keyAgeDays','clock'].includes(key))",to:'false',selectors:['test/integration.test.mjs'],pattern:'policy typos'});
   cases.push({name:'provider-type-coercion',file:'src/schema.mjs',from:"typeof raw.provider==='string'&&",to:'',selectors:['test/integration.test.mjs'],pattern:'nonstring provider'});
   add('csv-header-location','src/csv.mjs','startLine=headerLine;','',['test/csv.test.mjs']);
+  add('lexical-traversal','src/input.mjs',"if(typeof relativePath!=='string'||isAbsolute(relativePath)||relativePath.split(/[\\\\/]/).includes('..'))throw new EvidenceError('input-unreadable',location);",'void 0;',['test/input.test.mjs']);
+  add('regular-file-before-open','src/input.mjs',"if(!before.isFile())throw new EvidenceError('input-unreadable',location);",'void 0;',['test/input.test.mjs']);
+  add('opened-regular-file','src/input.mjs','!opened.isFile()||','',['test/input.test.mjs']);
+  add('opened-file-identity','src/input.mjs','opened.dev!==before.dev||opened.ino!==before.ino','false',['test/input.test.mjs']);
+  add('bytes-pre-open-widen','src/input.mjs','opened.size>LIMITS.bytes','opened.size>LIMITS.bytes+1',['test/input.test.mjs']);
+  add('bytes-post-open-tighten','src/input.mjs','total>LIMITS.bytes','total>=LIMITS.bytes',['test/input.test.mjs']);
+  add('manifest-files-tighten','src/manifest.mjs','paths.size>LIMITS.files','paths.size>=LIMITS.files',['test/manifest.test.mjs']);
+  add('manifest-files-widen','src/manifest.mjs','paths.size>LIMITS.files','paths.size>LIMITS.files+1',['test/manifest.test.mjs']);
+  add('raw-source-digest','src/manifest.mjs','digest!==s.sha256||(sourceHashes.has(key)&&sourceHashes.get(key)!==s.sha256)','false',['test/manifest.test.mjs']);
+  add('descriptor-record-count','src/manifest.mjs','records.length!==c.recordCount','false',['test/manifest.test.mjs']);
+  add('total-record-count','src/manifest.mjs','totals[klass]!==e.expectedRecords','false',['test/manifest.test.mjs']);
+  add('descriptor-region-coverage','src/manifest.mjs','!expectedRegions.includes(r)','false',['test/manifest.test.mjs']);
+  add('actual-record-region-coverage','src/manifest.mjs','!c.regions.includes(row.region)','false',['test/manifest.test.mjs']);
+  add('total-region-coverage','src/manifest.mjs','expected.some(r=>!coverage[klass].has(r))','false',['test/manifest.test.mjs']);
+  add('global-loader-completeness','src/manifest.mjs','else for(const c of CLASS_IDS)incompleteClasses.add(c);','else void 0;',['test/manifest.test.mjs']);
+  cases.push({name:'record-completeness',file:'src/provider-common.mjs',from:'incomplete=true;findings.push',to:'findings.push',selectors:['test/integration.test.mjs'],pattern:'unsupported provider facts'});
+  cases.push({name:'adapter-completeness',file:'src/provider-common.mjs',from:'if(r.incomplete)result.incompleteClasses.add(bundle.evidenceClass);',to:'void 0;',selectors:['test/integration.test.mjs'],pattern:'unsupported provider facts'});
+  add('logging-completeness','src/provider-common.mjs',"result.incompleteClasses.add('logging');",'void 0;',['test/adversarial.test.mjs']);
+  add('pointer-tuple-comparator','src/report.mjs','byCodeUnit(a.location.pointer,b.location.pointer)',"new Intl.Collator('en').compare(a.location.pointer,b.location.pointer)",['test/report.test.mjs']);
+  add('aws-acl-ignore','src/providers/aws.mjs','!p.ignorePublicAcls&&',"",['test/aws.test.mjs']);
+  add('aws-deny-permission-matching','src/providers/aws.mjs','s.permissions.some(permission=>!denied.has(permission))','s.permissions.length>0',['test/aws.test.mjs']);
+  add('gcp-effective-pap','src/providers/gcp.mjs',"p.effective!=='enforced'", "p.configured!=='enforced'",['test/gcp.test.mjs']);
+  add('aws-logging-categories','src/providers/aws.mjs',"!row.enabled||row.managementEvents!=='all'", "!row.enabled&&row.managementEvents!=='all'",['test/aws.test.mjs']);
+  add('azure-logging-categories','src/providers/azure.mjs','!row.enabled||!row.categories.administrative||!row.categories.security','!row.enabled||(!row.categories.administrative&&!row.categories.security)',['test/azure.test.mjs']);
+  add('gcp-logging-categories','src/providers/gcp.mjs','!row.enabled||!row.categories.adminActivity||!row.categories.dataAccess','!row.enabled||(!row.categories.adminActivity&&!row.categories.dataAccess)',['test/gcp.test.mjs']);
+  cases.push({name:'file-tuple-comparator',file:'src/report.mjs',from:'byCodeUnit(a.location.file,b.location.file)',to:"new Intl.Collator('en').compare(a.location.file,b.location.file)",selectors:['test/report.test.mjs'],equivalenceDomain:'roles'});
+  cases.push({name:'rule-tuple-comparator',file:'src/report.mjs',from:'byCodeUnit(a.ruleId,b.ruleId)',to:"new Intl.Collator('en').compare(a.ruleId,b.ruleId)",selectors:['test/report.test.mjs'],equivalenceDomain:'rules'});
   return cases;
 }
 async function main(){
@@ -69,11 +108,12 @@ async function main(){
       if(classifyResult(baseline)!=='survived')throw new Error(`Mutation baseline must pass: ${c.name} (${classifyResult(baseline)}).`);baselines.add(key);
     }
     const result=await runCase({root,...c,preload:'test/no-network-preload.mjs'});const source=await readFile(join(root,c.file),'utf8');
-    results.push({name:c.name,file:c.file,line:source.slice(0,source.indexOf(c.from)).split('\n').length,from:c.from,to:c.to,selectors:c.selectors,pattern:c.pattern??null,outcome:result.outcome});
+    if(result.outcome==='survived'&&c.equivalenceDomain){result.proof=await equivalenceProof(root,c.equivalenceDomain);result.observedOutcome=result.outcome;result.outcome='equivalent';}
+    results.push({name:c.name,file:c.file,line:source.slice(0,source.indexOf(c.from)).split('\n').length,from:c.from,to:c.to,selectors:c.selectors,pattern:c.pattern??null,...result});
     process.stderr.write(`${c.name}: ${result.outcome}\n`);
   }
   process.stdout.write(JSON.stringify({enumeration:results,total:results.length,killed:results.filter(r=>r.outcome==='killed').length})+'\n');
-  if(results.some(r=>r.outcome!=='killed'))process.exitCode=1;
+  if(results.some(r=>!['killed','equivalent'].includes(r.outcome)))process.exitCode=1;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   if(process.argv.includes('--self-test')){const r=spawnSync(process.execPath,['--test','test/mutation.test.mjs'],{stdio:'inherit'});process.exitCode=r.status??1;}

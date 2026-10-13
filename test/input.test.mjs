@@ -34,3 +34,27 @@ test('a file growing after stat still hits the bounded read limit',()=>withTempD
   try{await assert.rejects(read(root,'growing'),e=>e.ruleId==='byte-limit');}
   finally{fsPromises.open=originalOpen;syncBuiltinESMExports();}
 }));
+test('lexical traversal is refused even when its target remains inside the root',()=>withTempDir(async root=>{
+  await mkdir(join(root,'nested'));await writeFile(join(root,'safe'),'{}');
+  await assert.rejects(read(root,'nested/../safe'),e=>e.ruleId==='input-unreadable');
+}));
+test('nonregular inputs are refused before opening can block',()=>withTempDir(async root=>{
+  await mkdir(join(root,'directory'));const originalOpen=fsPromises.open;let opened=false;
+  fsPromises.open=async()=>{opened=true;throw new Error('Synthetic blocking-open sentinel.');};syncBuiltinESMExports();
+  try{await assert.rejects(read(root,'directory'),e=>e.ruleId==='input-unreadable');assert.equal(opened,false);}
+  finally{fsPromises.open=originalOpen;syncBuiltinESMExports();}
+}));
+test('opened nonregular or replaced file identities cannot become usable evidence',()=>withTempDir(async root=>{
+  await writeFile(join(root,'safe'),'{}');const originalOpen=fsPromises.open;
+  for(const edit of [s=>({...s,isFile:()=>false}),s=>({...s,isFile:()=>true,dev:s.dev+1}),s=>({...s,isFile:()=>true,ino:s.ino+1})]){
+    fsPromises.open=async(...args)=>{const handle=await originalOpen(...args),originalStat=handle.stat.bind(handle);let first=true;handle.stat=async()=>{const s=await originalStat();if(first){first=false;return edit(s);}return s;};return handle;};syncBuiltinESMExports();
+    try{await assert.rejects(read(root,'safe'),e=>e.ruleId==='input-unreadable');}
+    finally{fsPromises.open=originalOpen;syncBuiltinESMExports();}
+  }
+}));
+test('declared oversized input is refused before reading any bytes',()=>withTempDir(async root=>{
+  await writeFile(join(root,'above'),Buffer.alloc(8388609));const originalOpen=fsPromises.open;let reads=0;
+  fsPromises.open=async(...args)=>{const handle=await originalOpen(...args),originalRead=handle.read.bind(handle);handle.read=async(...a)=>{reads++;return originalRead(...a);};return handle;};syncBuiltinESMExports();
+  try{await assert.rejects(read(root,'above'),e=>e.ruleId==='byte-limit');assert.equal(reads,0);}
+  finally{fsPromises.open=originalOpen;syncBuiltinESMExports();}
+}));

@@ -13,6 +13,7 @@ const cases=[
  ['class-incomplete',m=>{m.evidence.keys.status='absent';}],
  ['class-incomplete',m=>{m.evidence.storage.status='partial';}],
  ['region-incomplete',m=>{m.regions.push('region-b');}],
+ ['region-incomplete',m=>{m.files[0].coverage.regions.push('region-b');}],
  ['pagination-incomplete',m=>{m.files[0].coverage.continuation='synthetic-continuation';}],
  ['pagination-incomplete',m=>{m.files[0].coverage.paginationComplete=false;}],
  ['export-error',m=>{m.files[0].coverage.exportErrors=['private-error'];}],
@@ -43,7 +44,7 @@ test('exact one hundred input files accepted and 101 refused',()=>withTempDir(as
   await editManifest(root,m=>{for(let i=0;i<93;i++)m.files[0].sourceFiles.push({path:`extra-${i}.txt`,sha256:sha256(bytes),kind:'storage-public-policy'});});
   assert.equal((await load(root)).classesComplete,5);
   await editManifest(root,m=>{m.files[0].sourceFiles.push({path:'extra-93.txt',sha256:sha256(bytes),kind:'storage-public-policy'});});
-  assert.ok((await load(root)).findings.some(f=>f.ruleId==='file-limit'));
+  const above=await load(root);assert.deepEqual(above.findings.map(f=>[f.ruleId,f.location]),[['file-limit',{file:'@manifest',pointer:''}]]);assert.equal(above.classesComplete,0);
 }));
 test('cumulative record boundary is per run not per bundle',()=>withTempDir(async root=>{
   const rows=genericRecords();rows.storage=Array.from({length:99996},(_,i)=>({id:`r-${i}`,region:'region-a'}));
