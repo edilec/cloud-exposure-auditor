@@ -1,5 +1,5 @@
 # Changelog
 
-## 0.1.0 — Unreleased
+## 0.1.0 — 2026-10-14
 
-Implemented locally on 2026-10-13: offline five-class AWS/Azure/GCP normalized export auditing, strict JSON/CSV, source/coverage consistency, root-confined bounded reads, deterministic private reports, explicit evaluation date/key-age policy, synthetic examples and offline behavioral checks. No package, release tag or code push has been published by this work.
+Initial GitHub source release of the local implementation completed on 2026-10-13: offline five-class AWS/Azure/GCP normalized export auditing, strict JSON/CSV, source/coverage consistency, root-confined bounded reads, deterministic private reports, explicit evaluation date/key-age policy, synthetic examples and offline behavioral checks. No npm package or live cloud access is implied.
