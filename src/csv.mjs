@@ -23,8 +23,8 @@ export function parseCsv(bytes,{fields,location,budget}){
   if(state==='quoted')fail();
   if(row.length||cell.length||state==='after-quote')endRow();
   if(rows.length===0)fail();
-  const header=rows.shift();lines.shift();const names=Object.keys(fields);
-  if(header.length!==names.length||new Set(header).size!==header.length||header.some(k=>!Object.hasOwn(fields,k)))fail();
+  const headerLine=lines[0],header=rows.shift();lines.shift();const names=Object.keys(fields);
+  if(header.length!==names.length||new Set(header).size!==header.length||header.some(k=>!Object.hasOwn(fields,k))){startLine=headerLine;fail();}
   const records=rows.map((values,index)=>{
     startLine=lines[index];if(values.length!==header.length)fail();
     const record={};

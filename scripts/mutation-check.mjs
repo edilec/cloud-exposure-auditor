@@ -54,6 +54,10 @@ async function enumerate(root){
   add('unknown-own-key','src/schema.mjs','Object.keys(value).length===keys.length&&','',['test/manifest.test.mjs']);
   add('normalized-digest','src/manifest.mjs','if(digest!==d.sha256)','if(false)',['test/manifest.test.mjs']);
   add('mandatory-key-inventory','src/manifest.mjs','SOURCE_KINDS[provider][klass].some(kind=>!kinds.has(kind))','false',['test/manifest.test.mjs']);
+  add('aws-acl-policy-deny','src/providers/aws.mjs',"((acl.publicRead&&!denied.has('read'))||(acl.publicWrite&&!denied.has('write')))",'(acl.publicRead||acl.publicWrite)',['test/aws.test.mjs']);
+  cases.push({name:'library-unknown-options',file:'src/index.mjs',from:"Reflect.ownKeys(options).some(key=>!['root','manifestPath','now','keyAgeDays','clock'].includes(key))",to:'false',selectors:['test/integration.test.mjs'],pattern:'policy typos'});
+  cases.push({name:'provider-type-coercion',file:'src/schema.mjs',from:"typeof raw.provider==='string'&&",to:'',selectors:['test/integration.test.mjs'],pattern:'nonstring provider'});
+  add('csv-header-location','src/csv.mjs','startLine=headerLine;','',['test/csv.test.mjs']);
   return cases;
 }
 async function main(){

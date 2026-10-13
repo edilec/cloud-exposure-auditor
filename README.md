@@ -44,7 +44,7 @@ const report=await auditExports({root:'exports',manifestPath:'manifest.json',
   now:'2026-10-13T00:00:00Z',keyAgeDays:90});
 ```
 
-`auditExports` returns an incomplete report for evidence failures and rejects with `ConfigError` for invalid caller configuration. It reads only the explicit root-confined input set. An injected `clock` function supports deterministic deadline testing. No ambient wall-clock date influences the findings.
+`auditExports` returns an incomplete report for evidence failures and rejects with `ConfigError` for invalid caller configuration, including unknown option keys. It reads only the explicit root-confined input set. An injected `clock` function supports deterministic deadline testing. No ambient wall-clock date influences the findings.
 
 `lint`, `test`, `check` package scripts are equivalent to `node scripts/lint.mjs`, `node --test`, and `node scripts/check.mjs`; no install is required to run the repository. Release checks use `node scripts/mutation-check.mjs` and `node scripts/package-check.mjs`. The latter needs an already installed pnpm (`CEA_PNPM` may name it), packs locally and installs the local tarball offline with scripts disabled into a disposable directory. It does not publish or download tooling. The local checkout's `docs/verification.md` records the actual runtime and measured results and is excluded from the distribution; a declared runtime floor is distinct from a tested version.
 

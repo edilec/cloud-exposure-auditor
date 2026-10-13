@@ -22,7 +22,7 @@ export const FIELDS={
 export function validateManifest(raw,{nowMs}){
   const at=pointer=>({file:'@manifest',pointer});const check=(ok,pointer,rule='input-invalid')=>requireFact(ok,at(pointer),rule);
   objectKeys(raw,['schemaVersion','provider','accountAlias','exportedAt','regions','evidence','files'],at(''),'input-invalid');
-  check(raw.schemaVersion==='1','/schemaVersion','unsupported-version');check(Object.hasOwn(SOURCE_KINDS,raw.provider),'/provider','unsupported-provider');
+  check(raw.schemaVersion==='1','/schemaVersion','unsupported-version');check(typeof raw.provider==='string'&&Object.hasOwn(SOURCE_KINDS,raw.provider),'/provider','unsupported-provider');
   check(text(raw.accountAlias),'/accountAlias');const exported=utcInstant(raw.exportedAt);check(Number.isFinite(exported)&&exported<=nowMs,'/exportedAt','date-invalid');
   check(Array.isArray(raw.regions)&&raw.regions.length>0&&raw.regions.every(r=>text(r,64)&&r!=='global')&&new Set(raw.regions).size===raw.regions.length,'/regions');
   check(raw.evidence&&typeof raw.evidence==='object'&&!Array.isArray(raw.evidence)&&Object.keys(raw.evidence).every(k=>CLASS_IDS.includes(k)),'/evidence');

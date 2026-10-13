@@ -24,3 +24,8 @@ test('AWS effective federated MFA and logging unknown controls',()=>{
   const logs=safeRecords('aws');logs.logging[0].exclusions='unsupported';assert.equal(audit(logs).status,'incomplete');
   const keys=safeRecords('aws');keys.keys[0].principalKind='unknown';assert.equal(audit(keys).status,'incomplete');
 });
+test('AWS whole-bucket public deny also suppresses matching ACL permissions',()=>{
+  const rows=safeRecords('aws'),s=rows.storage[0];s.policy={state:'present',statements:[statement('deny','public',['read'])]};s.ownership='acl-enabled';s.publicAccessBlock.ignorePublicAcls=false;s.acl.publicRead=true;
+  assert.equal(audit(rows).status,'pass');s.acl.publicWrite=true;assert.equal(audit(rows).status,'fail');
+  s.acl.publicWrite=false;s.policy.statements=[statement('deny','public',['write'])];assert.equal(audit(rows).status,'fail');
+});

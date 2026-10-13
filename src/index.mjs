@@ -11,7 +11,9 @@ export {TOOL_ID,RULE_SEVERITY} from './report.mjs';
 export {LIMITS} from './budget.mjs';
 export {ConfigError} from './schema.mjs';
 const adapters=Object.freeze({aws,azure,gcp});
-export async function auditExports({root,manifestPath,now,keyAgeDays=90,clock=()=>performance.now()}){
+export async function auditExports(options){
+  if(!options||typeof options!=='object'||Array.isArray(options)||Reflect.ownKeys(options).some(key=>!['root','manifestPath','now','keyAgeDays','clock'].includes(key))||['root','manifestPath','now'].some(key=>!Object.hasOwn(options,key)))throw new ConfigError();
+  let {root,manifestPath,now,keyAgeDays=90,clock=()=>performance.now()}=options;
   const nowMs=utcInstant(now);
   if(typeof root!=='string'||!root||typeof manifestPath!=='string'||!manifestPath||isAbsolute(manifestPath)||manifestPath.split(/[\\/]/).includes('..')||!Number.isFinite(nowMs)||!integer(keyAgeDays,1,36500)||typeof clock!=='function')throw new ConfigError();
   try{root=await realpath(root);if(!(await stat(root)).isDirectory())throw new ConfigError();}catch{throw new ConfigError();}

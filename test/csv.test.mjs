@@ -14,3 +14,6 @@ test('csv-row-provenance quoted newline and escaped commas',()=>{
 test('CSV malformed headers numbers quotes and records refused',()=>{
   for(const text of ['id,id,count,data\na,true,1,{}','id,active,count,extra\na,true,1,{}','id,active,count,data\na,false,01,{}','id,active,count,data\na,False,1,{}','id,active,count,data\na,true,1','id,active,count,data\n"broken,true,1,{}','id,active,count,data\n\n'])assert.throws(()=>parse(text),e=>e.ruleId==='csv-invalid');
 });
+test('a malformed CSV header points to its actual first line',()=>{
+  assert.throws(()=>parse('id,id,count,data\na,true,1,{}\nb,false,2,{}\n'),e=>e.ruleId==='csv-invalid'&&e.location.pointer==='row:1');
+});

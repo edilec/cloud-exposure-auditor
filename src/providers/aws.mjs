@@ -10,7 +10,7 @@ function evaluate(klass,row,ctx){
     for(const s of policy.statements){objectKeys(s,['effect','principal','permissions','resourceScope','condition'],at);requireFact(['allow','deny'].includes(s.effect)&&['public','restricted'].includes(s.principal)&&Array.isArray(s.permissions)&&s.permissions.length>0&&s.permissions.every(p=>['read','write'].includes(p))&&new Set(s.permissions).size===s.permissions.length&&s.resourceScope==='whole-bucket'&&['none','private-endpoint'].includes(s.condition),at);requireFact(s.effect!=='deny'||s.condition==='none',at);}
     const denied=new Set(policy.statements.filter(s=>s.effect==='deny'&&s.principal==='public'&&s.condition==='none').flatMap(s=>s.permissions));
     const policyPublic=policy.statements.some(s=>s.effect==='allow'&&s.principal==='public'&&s.condition==='none'&&s.permissions.some(permission=>!denied.has(permission)));
-    const aclPublic=(acl.publicRead||acl.publicWrite)&&!p.ignorePublicAcls&&ownership!=='bucket-owner-enforced';
+    const aclPublic=((acl.publicRead&&!denied.has('read'))||(acl.publicWrite&&!denied.has('write')))&&!p.ignorePublicAcls&&ownership!=='bucket-owner-enforced';
     if(aclPublic||(policyPublic&&!p.restrictPublicBuckets))out.push(['storage-public',aclPublic?'acl':'policy']);
   }
   if(klass==='ingress'){

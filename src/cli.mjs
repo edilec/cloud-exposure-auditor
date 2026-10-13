@@ -19,7 +19,8 @@ export function parseArgs(argv){
 export async function runCli(argv,{stdout=process.stdout,stderr=process.stderr,clock=()=>performance.now()}={}){
   try{
     const options=parseArgs(argv);if(options.help){stdout.write(HELP);return 0;}
-    const report=await auditExports({...options,clock});stdout.write(JSON.stringify(report)+'\n');
+    const {root,manifestPath,now,keyAgeDays}=options;
+    const report=await auditExports({root,manifestPath,now,keyAgeDays,clock});stdout.write(JSON.stringify(report)+'\n');
     if(options.human)stderr.write(`Cloud exposure audit: ${report.status}; ${report.summary.checked} records checked; ${report.summary.errors} errors; ${report.summary.warnings} warnings.\n`);
     return exitCode(report);
   }catch(e){stderr.write(e instanceof ConfigError?'Invalid configuration. Use --help.\n':'Execution failed.\n');return 2;}
