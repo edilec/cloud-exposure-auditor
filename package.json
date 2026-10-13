@@ -1,0 +1,9 @@
+{
+  "name": "cloud-exposure-auditor",
+  "version": "0.1.0",
+  "description": "Audit five exposure classes from local normalized AWS, Azure and GCP exports.",
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "license": "MIT",
+  "scripts": {"lint": "node scripts/lint.mjs", "test": "node --test", "check": "node scripts/check.mjs"}
+}
