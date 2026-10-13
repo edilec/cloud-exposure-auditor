@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"aws","evidenceClass":"ingress","records":[{"id":"synthetic-sg","region":"region-a","protocol":"tcp","fromPort":22,"toPort":22,"cidrs":["0.0.0.0/0"],"enabled":true}]}

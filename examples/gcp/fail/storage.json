@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"gcp","evidenceClass":"storage","records":[{"id":"synthetic-bucket","region":"region-a","publicAccessPrevention":{"configured":"unspecified","effective":"not-enforced"},"bindings":[{"memberKind":"all-users","permission":"read","condition":"none"}],"aclPublic":false,"uniformBucketLevelAccess":true}]}

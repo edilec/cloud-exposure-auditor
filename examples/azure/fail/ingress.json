@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"azure","evidenceClass":"ingress","records":[{"id":"synthetic-nsg","region":"region-a","direction":"inbound","access":"allow","priority":100,"protocol":"tcp","ports":[{"from":22,"to":22}],"sources":["::/0"],"effective":"applies"}]}

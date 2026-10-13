@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"gcp","evidenceClass":"logging","records":[{"id":"synthetic-audit","region":"region-a","enabled":true,"categories":{"adminActivity":true,"dataAccess":true},"exclusions":"none"}]}

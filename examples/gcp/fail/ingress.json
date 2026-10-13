@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"gcp","evidenceClass":"ingress","records":[{"id":"synthetic-firewall","region":"region-a","direction":"ingress","action":"allow","priority":1000,"protocol":"tcp","ports":[{"from":22,"to":22}],"sources":["::/0"],"disabled":false,"effective":"applies"}]}

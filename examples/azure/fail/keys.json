@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"azure","evidenceClass":"keys","records":[{"id":"synthetic-key","region":"global","principalKind":"storage-account","credentialType":"storage-account-key","createdAt":"2026-07-14T00:00:00Z","active":true}]}

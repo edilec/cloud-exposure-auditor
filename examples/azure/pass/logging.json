@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"azure","evidenceClass":"logging","records":[{"id":"synthetic-diagnostic","region":"region-a","enabled":true,"categories":{"administrative":true,"security":true},"exclusions":"none"}]}

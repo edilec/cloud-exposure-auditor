@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"aws","evidenceClass":"storage","records":[{"id":"synthetic-bucket","region":"region-a","policy":{"state":"absent","statements":[]},"acl":{"publicRead":false,"publicWrite":false},"publicAccessBlock":{"blockPublicAcls":true,"ignorePublicAcls":true,"blockPublicPolicy":true,"restrictPublicBuckets":true},"ownership":"bucket-owner-enforced"}]}

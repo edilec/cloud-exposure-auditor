@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"aws","evidenceClass":"mfa","records":[{"id":"synthetic-admin","region":"global","principalKind":"user","privileged":true,"mfa":{"status":"enabled","basis":"direct","effective":true}}]}

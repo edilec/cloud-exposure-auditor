@@ -7,5 +7,7 @@
   "license": "MIT",
   "exports": {".": "./src/index.mjs"},
   "bin": {"cloud-exposure-auditor": "bin/cloud-exposure-auditor.mjs"},
+  "repository": {"type": "git", "url": "https://github.com/edilec/cloud-exposure-auditor.git"},
+  "files": ["bin", "src", "test", "scripts", "docs/input-contract.md", "docs/provider-profiles.md", "docs/rules.md", "docs/security-boundaries.md", "docs/provenance.md", "examples", "README.md", "LICENSE", "CHANGELOG.md"],
   "scripts": {"lint": "node scripts/lint.mjs", "test": "node --test", "check": "node scripts/check.mjs"}
 }

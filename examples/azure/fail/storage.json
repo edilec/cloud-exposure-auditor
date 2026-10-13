@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"azure","evidenceClass":"storage","records":[{"id":"synthetic-storage","region":"region-a","allowBlobPublicAccess":true,"containerAccess":"blob","network":{"publicNetworkAccess":"enabled","defaultAction":"allow","effectiveInternetAccess":"allowed"}}]}

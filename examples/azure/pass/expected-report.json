@@ -1,0 +1,1 @@
+{"schemaVersion":"1","tool":"cloud-exposure-auditor","status":"pass","summary":{"checked":5,"errors":0,"warnings":0,"files":7,"classesComplete":5},"findings":[],"provenance":{"coverage":"operator-supplied","normalization":"operator-supplied","sourceDigests":"checked-local-bytes","authenticity":"not-verified"}}

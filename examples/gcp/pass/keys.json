@@ -1,0 +1,1 @@
+{"schemaVersion":"1","provider":"gcp","evidenceClass":"keys","records":[{"id":"synthetic-key","region":"global","principalKind":"service-account","keyType":"user-managed","createdAt":"2026-10-13T00:00:00Z","active":true}]}
